@@ -45,7 +45,8 @@ body {
   aspect-ratio: 1;
 }
 
-.sparkle-canvas {
+.sparkle-canvas,
+.trail-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -209,7 +210,8 @@ body {
     transition: none;
   }
 
-  .sparkle-canvas {
+  .sparkle-canvas,
+  .trail-canvas {
     display: none;
   }
 }
@@ -225,7 +227,8 @@ body {
     opacity: 0.35;
   }
 
-  .sparkle-canvas {
+  .sparkle-canvas,
+  .trail-canvas {
     display: none;
   }
 }
