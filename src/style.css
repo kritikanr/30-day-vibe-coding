@@ -22,7 +22,7 @@ body {
     'Segoe UI',
     sans-serif;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 45%, #14102a 0%, #08060f 55%, #030208 100%);
+    radial-gradient(ellipse 80% 60% at 50% 45%, #12101f 0%, #07060e 55%, #020106 100%);
   color: #fff;
   -webkit-font-smoothing: antialiased;
 }
@@ -60,21 +60,24 @@ body {
 }
 
 .cta-button {
+  --highlight-angle: 0;
+  --highlight-strength: 0;
+
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 1rem 2.25rem;
-  border: 1px solid rgba(130, 140, 255, 0.45);
+  border: 1px solid rgba(75, 80, 140, 0.22);
   border-radius: 999px;
   background:
     linear-gradient(
       165deg,
-      rgba(255, 255, 255, 0.09) 0%,
-      rgba(255, 255, 255, 0.02) 28%,
-      rgba(0, 0, 0, 0.35) 100%
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.015) 28%,
+      rgba(0, 0, 0, 0.38) 100%
     ),
-    rgba(8, 8, 16, 0.62);
+    rgba(6, 6, 12, 0.68);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   color: #fff;
@@ -85,15 +88,11 @@ body {
   white-space: nowrap;
   cursor: pointer;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(100, 120, 255, 0.12),
-    0 0 28px rgba(88, 72, 220, 0.28),
-    0 0 64px rgba(72, 56, 200, 0.18),
-    0 12px 40px rgba(40, 24, 120, 0.35);
-  transition:
-    box-shadow 0.4s ease,
-    border-color 0.4s ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.32),
+    0 0 14px rgba(58, 48, 140, 0.12),
+    0 6px 28px rgba(28, 22, 72, 0.22);
+  transition: box-shadow 0.45s ease;
 }
 
 .cta-button::before {
@@ -103,14 +102,72 @@ body {
   border-radius: inherit;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.08) 0%,
     transparent 42%
   );
   pointer-events: none;
 }
 
+.cta-button__label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Living luminous border — cursor-oriented highlight */
+.cta-border-ring {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  opacity: calc(0.35 + var(--highlight-strength) * 0.65);
+  background: conic-gradient(
+    from calc(var(--highlight-angle) * 1deg),
+    rgba(70, 68, 130, 0.18) 0deg,
+    rgba(70, 68, 130, 0.18) 55deg,
+    rgba(105, 92, 210, 0.42) 82deg,
+    rgba(155, 138, 255, 0.88) 100deg,
+    rgba(105, 92, 210, 0.42) 118deg,
+    rgba(70, 68, 130, 0.18) 145deg,
+    rgba(70, 68, 130, 0.18) 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transition: opacity 0.35s ease;
+}
+
+.cta-border-glow {
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: calc(var(--highlight-strength) * 0.55);
+  background: conic-gradient(
+    from calc(var(--highlight-angle) * 1deg),
+    transparent 0deg,
+    transparent 72deg,
+    rgba(90, 75, 210, 0.28) 92deg,
+    rgba(130, 110, 255, 0.42) 100deg,
+    rgba(90, 75, 210, 0.28) 108deg,
+    transparent 128deg,
+    transparent 360deg
+  );
+  filter: blur(5px);
+  transition: opacity 0.35s ease;
+}
+
 .cta-button:hover {
-  border-color: rgba(150, 160, 255, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.32),
+    0 0 16px rgba(62, 52, 150, 0.16),
+    0 6px 28px rgba(28, 22, 72, 0.24);
 }
 
 .cta-button:active {
@@ -122,27 +179,16 @@ body {
 }
 
 .cta-button:focus-visible {
-  outline: 2px solid rgba(160, 170, 255, 0.9);
+  outline: 2px solid rgba(140, 130, 255, 0.75);
   outline-offset: 4px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(120, 140, 255, 0.35),
-    0 0 36px rgba(100, 80, 240, 0.45),
-    0 0 72px rgba(80, 60, 220, 0.3),
-    0 12px 40px rgba(40, 24, 120, 0.35);
 }
 
-/* Intensified glow when magnetic field is active */
 .cta-zone.is-active .cta-button {
-  border-color: rgba(160, 150, 255, 0.58);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(120, 130, 255, 0.22),
-    0 0 40px rgba(100, 80, 255, 0.42),
-    0 0 88px rgba(80, 60, 230, 0.28),
-    0 14px 48px rgba(50, 30, 140, 0.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.32),
+    0 0 18px rgba(68, 56, 165, 0.18),
+    0 8px 32px rgba(32, 24, 88, 0.26);
 }
 
 /* ── Reduced motion & touch ─────────────────────────────────────── */
@@ -157,6 +203,12 @@ body {
     transition: none;
   }
 
+  .cta-border-ring,
+  .cta-border-glow {
+    opacity: 0.35;
+    transition: none;
+  }
+
   .sparkle-canvas {
     display: none;
   }
@@ -166,6 +218,11 @@ body {
   .cta-mover {
     transform: none !important;
     will-change: auto;
+  }
+
+  .cta-border-ring,
+  .cta-border-glow {
+    opacity: 0.35;
   }
 
   .sparkle-canvas {

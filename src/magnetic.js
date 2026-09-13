@@ -136,6 +136,10 @@ export function createMagneticController({ mover, zone, config = MAGNETIC_CONFIG
     disable()
   }
 
+  function getButtonRect() {
+    return mover.getBoundingClientRect()
+  }
+
   return {
     bind,
     unbind,
@@ -143,5 +147,6 @@ export function createMagneticController({ mover, zone, config = MAGNETIC_CONFIG
     disable,
     getState: () => state,
     getButtonCenter,
+    getButtonRect,
   }
 }

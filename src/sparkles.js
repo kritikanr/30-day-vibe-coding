@@ -1,48 +1,113 @@
 /**
- * Cosmic sparkle particles — sparse stars drawn toward the button.
+ * Cosmic sparkle particles — soft field stars and border energy collection.
  */
 
-const COLORS = [
-  'rgba(140, 160, 255, 1)',
-  'rgba(160, 130, 255, 1)',
-  'rgba(200, 180, 255, 1)',
-  'rgba(255, 255, 255, 1)',
+const FIELD_COLORS = [
+  [88, 72, 210],
+  [108, 88, 230],
+  [130, 108, 245],
+  [170, 155, 255],
 ]
 
-const MAX_PARTICLES = 14
+const BORDER_COLORS = [
+  [120, 100, 240],
+  [150, 130, 255],
+  [190, 175, 255],
+]
+
+const MAX_FIELD_PARTICLES = 10
+const MAX_BORDER_PARTICLES = 4
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min)
 }
 
-function createParticle(canvasWidth, canvasHeight, centerX, centerY, radius) {
+function rgba([r, g, b], alpha) {
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function createFieldParticle(centerX, centerY, radius) {
   const angle = Math.random() * Math.PI * 2
-  const dist = randomBetween(radius * 0.35, radius * 0.95)
-  const x = centerX + Math.cos(angle) * dist
-  const y = centerY + Math.sin(angle) * dist
+  const dist = randomBetween(radius * 0.45, radius * 0.92)
 
   return {
-    x,
-    y,
-    size: randomBetween(0.6, 1.8),
-    opacity: randomBetween(0.15, 0.55),
-    targetOpacity: randomBetween(0.2, 0.7),
-    twinkleSpeed: randomBetween(1.2, 3.2),
+    kind: 'field',
+    x: centerX + Math.cos(angle) * dist,
+    y: centerY + Math.sin(angle) * dist,
+    vx: 0,
+    vy: 0,
+    size: randomBetween(1.2, 2.8),
+    opacity: 0,
+    targetOpacity: randomBetween(0.35, 0.75),
+    fieldStrength: 0,
+    twinkleSpeed: randomBetween(0.8, 1.8),
     twinklePhase: Math.random() * Math.PI * 2,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    driftAngle: angle + randomBetween(-0.4, 0.4),
-    driftSpeed: randomBetween(0.08, 0.22),
+    color: FIELD_COLORS[Math.floor(Math.random() * FIELD_COLORS.length)],
     life: 0,
-    maxLife: randomBetween(2.5, 5),
+    maxLife: randomBetween(3, 6),
   }
+}
+
+function createBorderParticle(x, y, angle) {
+  const tangent = angle + Math.PI / 2
+  const spread = randomBetween(-0.35, 0.35)
+
+  return {
+    kind: 'border',
+    x: x + Math.cos(angle) * randomBetween(-2, 6) + Math.cos(tangent) * spread * 4,
+    y: y + Math.sin(angle) * randomBetween(-2, 6) + Math.sin(tangent) * spread * 4,
+    vx: Math.cos(tangent) * randomBetween(-0.04, 0.04),
+    vy: Math.sin(tangent) * randomBetween(-0.04, 0.04),
+    size: randomBetween(0.8, 1.6),
+    opacity: 0,
+    targetOpacity: randomBetween(0.45, 0.85),
+    fieldStrength: 0,
+    twinkleSpeed: randomBetween(1.4, 2.6),
+    twinklePhase: Math.random() * Math.PI * 2,
+    color: BORDER_COLORS[Math.floor(Math.random() * BORDER_COLORS.length)],
+    life: 0,
+    maxLife: randomBetween(1.2, 2.4),
+    homeAngle: angle,
+  }
+}
+
+function getBorderPoint(angleDeg, buttonRect, canvasRect, outward = 5) {
+  const angle = (angleDeg * Math.PI) / 180
+  const rx = buttonRect.width / 2
+  const ry = buttonRect.height / 2
+  const cx = buttonRect.left + rx - canvasRect.left
+  const cy = buttonRect.top + ry - canvasRect.top
+
+  return {
+    x: cx + (rx + outward) * Math.cos(angle),
+    y: cy + (ry + outward) * Math.sin(angle),
+  }
+}
+
+function drawSoftParticle(ctx, p) {
+  const [r, g, b] = p.color
+  const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2.8)
+  glow.addColorStop(0, rgba([r, g, b], p.opacity))
+  glow.addColorStop(0.35, rgba([r, g, b], p.opacity * 0.45))
+  glow.addColorStop(1, rgba([r, g, b], 0))
+
+  ctx.fillStyle = glow
+  ctx.beginPath()
+  ctx.arc(p.x, p.y, p.size * 2.8, 0, Math.PI * 2)
+  ctx.fill()
+
+  ctx.fillStyle = rgba([Math.min(r + 30, 255), Math.min(g + 30, 255), 255], p.opacity * 0.85)
+  ctx.beginPath()
+  ctx.arc(p.x, p.y, p.size * 0.45, 0, Math.PI * 2)
+  ctx.fill()
 }
 
 export function createSparkleController({
   canvas,
   zone,
-  mover,
   getMagneticState,
-  getButtonCenter,
+  getBorderState,
+  getButtonRect,
   magneticRadius,
 }) {
   const ctx = canvas.getContext('2d')
@@ -63,67 +128,79 @@ export function createSparkleController({
 
   function canvasCenter() {
     const rect = canvas.getBoundingClientRect()
-    const buttonCenter = getButtonCenter()
+    const buttonCenter = getButtonRect()
     return {
-      x: buttonCenter.x - rect.left,
-      y: buttonCenter.y - rect.top,
+      x: buttonCenter.left + buttonCenter.width / 2 - rect.left,
+      y: buttonCenter.top + buttonCenter.height / 2 - rect.top,
     }
   }
 
-  function spawnParticles(count, center, radius, intensity) {
-    const target = Math.round(MAX_PARTICLES * intensity)
-    const toAdd = Math.min(count, target - particles.length)
-
-    for (let i = 0; i < toAdd; i += 1) {
-      particles.push(createParticle(canvas.width, canvas.height, center.x, center.y, radius))
-    }
+  function countByKind(kind) {
+    return particles.filter((p) => p.kind === kind).length
   }
 
-  function updateParticles(dt, center, radius, intensity) {
-    for (let i = particles.length - 1; i >= 0; i -= 1) {
-      const p = particles[i]
-      p.life += dt
-
-      const dx = center.x - p.x
-      const dy = center.y - p.y
-      const dist = Math.hypot(dx, dy) || 1
-      const pull = 0.35 * intensity + 0.08
-
-      p.x += (dx / dist) * pull + Math.cos(p.driftAngle) * p.driftSpeed
-      p.y += (dy / dist) * pull + Math.sin(p.driftAngle) * p.driftSpeed
-      p.driftAngle += dt * 0.3
-
-      const twinkle = 0.55 + Math.sin(p.life * p.twinkleSpeed + p.twinklePhase) * 0.45
-      const fadeIn = Math.min(p.life / 0.6, 1)
-      const fieldFade = intensity > 0.02 ? 1 : Math.max(0, 1 - dt * 2.8)
-
-      p.opacity *= fieldFade
-      p.opacity = Math.max(
-        0,
-        p.targetOpacity * twinkle * fadeIn * (0.4 + intensity * 0.6),
-      )
-
-      const edgeDist = Math.hypot(p.x - center.x, p.y - center.y)
-      if (p.life > p.maxLife + 0.8 || edgeDist < 8 || p.opacity < 0.02) {
-        particles.splice(i, 1)
-      }
-    }
+  function spawnFieldParticle(center, radius, intensity) {
+    const target = Math.round(MAX_FIELD_PARTICLES * intensity)
+    if (countByKind('field') >= target) return
+    particles.push(createFieldParticle(center.x, center.y, radius))
   }
 
-  function drawParticles() {
-    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
+  function spawnBorderParticle(buttonRect, canvasRect, angle, intensity) {
+    const target = Math.round(MAX_BORDER_PARTICLES * intensity)
+    if (countByKind('border') >= target) return
 
-    for (const p of particles) {
-      ctx.save()
-      ctx.globalAlpha = p.opacity
-      ctx.fillStyle = p.color
-      ctx.shadowBlur = 6
-      ctx.shadowColor = p.color
-      ctx.beginPath()
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
+    const point = getBorderPoint(angle, buttonRect, canvasRect, 4)
+    particles.push(createBorderParticle(point.x, point.y, (angle * Math.PI) / 180))
+  }
+
+  function updateFieldParticle(p, dt, center, intensity) {
+    const dx = center.x - p.x
+    const dy = center.y - p.y
+    const dist = Math.hypot(dx, dy) || 1
+    const pull = (0.18 * intensity + 0.04) * dt * 60
+
+    p.vx = p.vx * 0.92 + (dx / dist) * pull
+    p.vy = p.vy * 0.92 + (dy / dist) * pull
+    p.x += p.vx
+    p.y += p.vy
+
+    const twinkle = 0.65 + Math.sin(p.life * p.twinkleSpeed + p.twinklePhase) * 0.35
+    const fadeIn = Math.min(p.life / 0.8, 1)
+
+    if (intensity > 0.02) {
+      p.fieldStrength = Math.min(1, p.fieldStrength + dt * 2.2)
+    } else {
+      p.fieldStrength = Math.max(0, p.fieldStrength - dt * 2)
     }
+
+    p.opacity = p.targetOpacity * twinkle * fadeIn * p.fieldStrength * (0.5 + intensity * 0.5)
+
+    const edgeDist = Math.hypot(p.x - center.x, p.y - center.y)
+    return p.life > p.maxLife + 0.5 || edgeDist < 10 || p.opacity < 0.015
+  }
+
+  function updateBorderParticle(p, dt, buttonRect, canvasRect, angle, intensity) {
+    const home = getBorderPoint(angle, buttonRect, canvasRect, 4)
+    const dx = home.x - p.x
+    const dy = home.y - p.y
+
+    p.vx = p.vx * 0.88 + dx * 0.04
+    p.vy = p.vy * 0.88 + dy * 0.04
+    p.x += p.vx
+    p.y += p.vy
+
+    const twinkle = 0.7 + Math.sin(p.life * p.twinkleSpeed + p.twinklePhase) * 0.3
+    const fadeIn = Math.min(p.life / 0.35, 1)
+
+    if (intensity > 0.05) {
+      p.fieldStrength = Math.min(1, p.fieldStrength + dt * 3.5)
+    } else {
+      p.fieldStrength = Math.max(0, p.fieldStrength - dt * 3)
+    }
+
+    p.opacity = p.targetOpacity * twinkle * fadeIn * p.fieldStrength * intensity
+
+    return p.life > p.maxLife || p.opacity < 0.02
   }
 
   function tick(timestamp) {
@@ -136,18 +213,38 @@ export function createSparkleController({
     lastTime = timestamp
 
     const magnetic = getMagneticState()
+    const border = getBorderState()
     const center = canvasCenter()
+    const canvasRect = canvas.getBoundingClientRect()
+    const buttonRect = getButtonRect()
     const intensity = magnetic.inField ? magnetic.proximity : 0
+    const borderIntensity = border.intensity
 
-    if (intensity > 0.02) {
-      const spawnRate = intensity > 0.3 ? 2 : 1
-      if (Math.random() < spawnRate * dt * 3) {
-        spawnParticles(1, center, magneticRadius, intensity)
-      }
+    if (intensity > 0.03 && Math.random() < dt * 2.2 * intensity) {
+      spawnFieldParticle(center, magneticRadius, intensity)
     }
 
-    updateParticles(dt, center, magneticRadius, intensity)
-    drawParticles()
+    if (borderIntensity > 0.08 && Math.random() < dt * 4 * borderIntensity) {
+      spawnBorderParticle(buttonRect, canvasRect, border.angle, borderIntensity)
+    }
+
+    for (let i = particles.length - 1; i >= 0; i -= 1) {
+      const p = particles[i]
+      p.life += dt
+
+      const remove =
+        p.kind === 'border'
+          ? updateBorderParticle(p, dt, buttonRect, canvasRect, border.angle, borderIntensity)
+          : updateFieldParticle(p, dt, center, intensity)
+
+      if (remove) particles.splice(i, 1)
+    }
+
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
+
+    for (const p of particles) {
+      drawSoftParticle(ctx, p)
+    }
 
     rafId = requestAnimationFrame(tick)
   }
