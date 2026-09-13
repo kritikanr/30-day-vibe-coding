@@ -1,0 +1,174 @@
+/* ── Visual styling ─────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 45%, #14102a 0%, #08060f 55%, #030208 100%);
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+.scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 2rem;
+}
+
+.cta-zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 22rem);
+  aspect-ratio: 1;
+}
+
+.sparkle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.cta-mover {
+  position: relative;
+  z-index: 1;
+  will-change: transform;
+}
+
+.cta-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2.25rem;
+  border: 1px solid rgba(130, 140, 255, 0.45);
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.09) 0%,
+      rgba(255, 255, 255, 0.02) 28%,
+      rgba(0, 0, 0, 0.35) 100%
+    ),
+    rgba(8, 8, 16, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(100, 120, 255, 0.12),
+    0 0 28px rgba(88, 72, 220, 0.28),
+    0 0 64px rgba(72, 56, 200, 0.18),
+    0 12px 40px rgba(40, 24, 120, 0.35);
+  transition:
+    box-shadow 0.4s ease,
+    border-color 0.4s ease;
+}
+
+.cta-button::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 42%
+  );
+  pointer-events: none;
+}
+
+.cta-button:hover {
+  border-color: rgba(150, 160, 255, 0.55);
+}
+
+.cta-button:active {
+  transform: scale(0.98);
+}
+
+.cta-button:focus {
+  outline: none;
+}
+
+.cta-button:focus-visible {
+  outline: 2px solid rgba(160, 170, 255, 0.9);
+  outline-offset: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(120, 140, 255, 0.35),
+    0 0 36px rgba(100, 80, 240, 0.45),
+    0 0 72px rgba(80, 60, 220, 0.3),
+    0 12px 40px rgba(40, 24, 120, 0.35);
+}
+
+/* Intensified glow when magnetic field is active */
+.cta-zone.is-active .cta-button {
+  border-color: rgba(160, 150, 255, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(120, 130, 255, 0.22),
+    0 0 40px rgba(100, 80, 255, 0.42),
+    0 0 88px rgba(80, 60, 230, 0.28),
+    0 14px 48px rgba(50, 30, 140, 0.4);
+}
+
+/* ── Reduced motion & touch ─────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-mover {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .cta-button {
+    transition: none;
+  }
+
+  .sparkle-canvas {
+    display: none;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cta-mover {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .sparkle-canvas {
+    display: none;
+  }
+}
