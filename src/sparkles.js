@@ -95,9 +95,13 @@ export function createSparkleController({
 
       const twinkle = 0.55 + Math.sin(p.life * p.twinkleSpeed + p.twinklePhase) * 0.45
       const fadeIn = Math.min(p.life / 0.6, 1)
-      const fadeOut = intensity > 0.05 ? 1 : Math.max(0, 1 - (p.life - p.maxLife) * 0.8)
+      const fieldFade = intensity > 0.02 ? 1 : Math.max(0, 1 - dt * 2.8)
 
-      p.opacity = p.targetOpacity * twinkle * fadeIn * fadeOut * (0.4 + intensity * 0.6)
+      p.opacity *= fieldFade
+      p.opacity = Math.max(
+        0,
+        p.targetOpacity * twinkle * fadeIn * (0.4 + intensity * 0.6),
+      )
 
       const edgeDist = Math.hypot(p.x - center.x, p.y - center.y)
       if (p.life > p.maxLife + 0.8 || edgeDist < 8 || p.opacity < 0.02) {
