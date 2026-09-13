@@ -27,12 +27,20 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: day-01-magnetic-button/package-lock.json
 
       - name: Install dependencies
+        working-directory: day-01-magnetic-button
         run: npm ci
 
       - name: Build
-        run: npm run build -- --base=/30-day-vibe-coding/
+        working-directory: day-01-magnetic-button
+        run: npm run build -- --base=/30-day-vibe-coding/day-01-magnetic-button/ --outDir=../dist/day-01-magnetic-button
+
+      - name: Copy Day 02 into dist
+        run: |
+          mkdir -p dist/day-02-cursor-playground
+          cp day-02-cursor-playground/index.html dist/day-02-cursor-playground/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
