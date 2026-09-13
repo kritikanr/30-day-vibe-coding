@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rocket Cursor</title>
+  <style>
+    :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #070814;
+      cursor: none;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse 90% 70% at 48% 38%, #141a32 0%, transparent 58%),
+        radial-gradient(ellipse 50% 40% at 78% 72%, #1a1230 0%, transparent 50%),
+        linear-gradient(168deg, #0b0e1c 0%, #06070f 48%, #05040c 100%);
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .rocket {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 40px;
+      height: 40px;
+      margin: 0;
+      pointer-events: none;
+      z-index: 3;
+      will-change: transform, opacity;
+      transform: translate3d(-100px, -100px, 0);
+      filter: drop-shadow(0 0 5px rgba(255, 214, 170, 0.28));
+      opacity: 0;
+    }
+
+    .rocket.is-ready {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rocket {
+        filter: none;
+        transition: opacity 120ms ease;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="space" aria-hidden="true"></canvas>
+  <svg class="rocket" id="rocket" viewBox="0 0 64 64" aria-hidden="true">
+    <defs>
+      <linearGradient id="bodyGrad" x1="20" y1="8" x2="46" y2="54" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#ffffff" />
+        <stop offset="0.45" stop-color="#f7f3ec" />
+        <stop offset="1" stop-color="#d2c9bb" />
+      </linearGradient>
+      <linearGradient id="noseGrad" x1="32" y1="22" x2="32" y2="2" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#de2d5a" />
+        <stop offset="0.55" stop-color="#f25c7c" />
+        <stop offset="1" stop-color="#ff9aad" />
+      </linearGradient>
+      <linearGradient id="finGrad" x1="8" y1="34" x2="32" y2="60" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#ff7a96" />
+        <stop offset="1" stop-color="#c21845" />
+      </linearGradient>
+      <radialGradient id="windowGrad" cx="31.5" cy="33" r="8" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#bfe9ff" />
+        <stop offset="0.45" stop-color="#4a90d9" />
+        <stop offset="1" stop-color="#1a4b8c" />
+      </radialGradient>
+    </defs>
+    <path d="M20 42 L7 57 L26 50 Z" fill="url(#finGrad)" />
+    <path d="M44 42 L57 57 L38 50 Z" fill="url(#finGrad)" />
+    <ellipse cx="32" cy="52.5" rx="7.2" ry="5.4" fill="#b8c0cc" />
+    <ellipse cx="32" cy="52.8" rx="4.6" ry="3.4" fill="#1a2230" />
+    <path d="M21 26 C21 16.5 25.5 9.5 32 4.5 C38.5 9.5 43 16.5 43 26 L41.2 46.5 C40.6 51.8 36.8 55.2 32 55.2 C27.2 55.2 23.4 51.8 22.8 46.5 Z" fill="url(#bodyGrad)" />
+    <path d="M24 24 C25 16.5 28.2 11 32 7.6 C35.8 11 39 16.5 40 24 C36.4 22.2 34 21.6 32 21.6 C30 21.6 27.6 22.2 24 24 Z" fill="rgba(255,255,255,0.5)" />
+    <path d="M22.2 20 C25.6 11.2 29.2 6 32 3.2 C34.8 6 38.4 11.2 41.8 20 C38.6 15.2 35.4 12.4 32 12.4 C28.6 12.4 25.4 15.2 22.2 20 Z" fill="url(#noseGrad)" />
+    <circle cx="32" cy="33.2" r="7.1" fill="#e8eef6" />
+    <circle cx="32" cy="33.2" r="6" fill="url(#windowGrad)" />
+    <ellipse cx="29.8" cy="31.2" rx="2.3" ry="1.8" fill="rgba(255,255,255,0.8)" />
+    <path d="M25.4 44.5 C27.8 46.2 29.8 47 32 47 C34.2 47 36.2 46.2 38.6 44.5" fill="none" stroke="#e4456c" stroke-width="1.7" stroke-linecap="round" />
+  </svg>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("space");
+      const ctx = canvas.getContext("2d", { alpha: true });
+      const rocketEl = document.getElementById("rocket");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const ROCKET_SIZE = 40;
+      const HALF = ROCKET_SIZE / 2;
+      const NOZZLE_OFFSET = 16.5;
+      const MAX_BURST = 70;
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+
+      const pointer = { x: innerWidth / 2, y: innerHeight / 2, inside: false };
+      const rocket = { x: pointer.x, y: pointer.y, angle: -Math.PI / 2, visible: false };
+      let lastAngle = -Math.PI / 2;
+      let lastTime = performance.now();
+      let hiddenUntil = 0;
+      let appearFrom = 0;
+      let appearUntil = 0;
+      let lastMoveAt = 0;
+
+      const stars = [];
+      const bursts = [];
+      const flame = { points: [], energy: 0, time: 0 };
+
+      const COLORS = {
+        white: [255, 252, 245],
+        gold: [255, 214, 120],
+        yellow: [255, 196, 74],
+        pink: [255, 130, 176],
+        magenta: [232, 82, 168],
+      };
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seedStars();
+      }
+
+      function seedStars() {
+        stars.length = 0;
+        const count = Math.round((width * height) / 28000);
+        const n = Math.max(28, Math.min(64, count));
+        for (let i = 0; i < n; i++) {
+          stars.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            r: Math.random() < 0.82 ? 0.55 + Math.random() * 0.55 : 0.9 + Math.random() * 0.7,
+            a: 0.12 + Math.random() * 0.32,
+            tw: Math.random() * Math.PI * 2,
+            sp: 0.35 + Math.random() * 0.7,
+          });
+        }
+      }
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function lerpAngle(a, b, t) {
+        let d = b - a;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        return a + d * t;
+      }
+
+      function expSmooth(rate, dt) {
+        return 1 - Math.exp(-rate * dt);
+      }
+
+      function clamp(v, lo, hi) {
+        return Math.max(lo, Math.min(hi, v));
+      }
+
+      function pickColor(kind) {
+        if (kind === "core") return COLORS.white;
+        if (kind === "hot") return Math.random() < 0.55 ? COLORS.gold : COLORS.yellow;
+        if (kind === "mid") return Math.random() < 0.5 ? COLORS.gold : COLORS.pink;
+        return Math.random() < 0.65 ? COLORS.pink : COLORS.magenta;
+      }
+
+      function flameNoise(t, seed) {
+        return (
+          Math.sin(t * 5.3 + seed) * 0.46 +
+          Math.sin(t * 9.8 + seed * 1.61) * 0.29 +
+          Math.sin(t * 17.4 + seed * 2.17) * 0.17 +
+          Math.sin(t * 28.1 + seed * 0.73) * 0.08
+        );
+      }
+
+      function trimFlameLength(maxLen) {
+        const pts = flame.points;
+        if (pts.length < 2) return;
+        let acc = 0;
+        for (let i = 1; i < pts.length; i++) {
+          const d = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+          if (acc + d >= maxLen) {
+            const u = d < 0.0001 ? 0 : (maxLen - acc) / d;
+            pts[i].x = lerp(pts[i - 1].x, pts[i].x, u);
+            pts[i].y = lerp(pts[i - 1].y, pts[i].y, u);
+            pts.length = i + 1;
+            return;
+          }
+          acc += d;
+        }
+      }
+
+      function updateFlame(dt, hidden, stopped, speed) {
+        flame.time += dt;
+        const nx = rocket.x - Math.cos(rocket.angle) * NOZZLE_OFFSET;
+        const ny = rocket.y - Math.sin(rocket.angle) * NOZZLE_OFFSET;
+        const want = hidden || !rocket.visible ? 0 : clamp((speed - 10) / 380, 0, 1);
+        const rate = hidden || stopped ? 16 : 9;
+        flame.energy = lerp(flame.energy, want, expSmooth(rate, dt));
+
+        if (rocket.visible && !hidden && flame.energy > 0.015) {
+          if (!flame.points.length) {
+            flame.points.push({ x: nx, y: ny });
+          } else {
+            const dx = nx - flame.points[0].x;
+            const dy = ny - flame.points[0].y;
+            if (Math.hypot(dx, dy) > 1.4) {
+              flame.points.unshift({ x: nx, y: ny });
+            }
+          }
+        }
+
+        if (flame.points.length) {
+          flame.points[0].x = nx;
+          flame.points[0].y = ny;
+        }
+
+        if (flame.points.length === 1 && flame.energy > 0.04) {
+          const stub = 8 + 14 * flame.energy;
+          flame.points.push({
+            x: nx - Math.cos(rocket.angle) * stub,
+            y: ny - Math.sin(rocket.angle) * stub,
+          });
+        }
+
+        const maxLen = (reduceMotion ? 52 : 96) * (0.32 + 0.68 * flame.energy);
+        trimFlameLength(maxLen);
+        if (flame.energy < 0.02) flame.points.length = Math.min(flame.points.length, 1);
+        if (flame.points.length > 48) flame.points.length = 48;
+      }
+
+      function sliceFlame(pts, frac) {
+        if (pts.length < 2 || frac >= 0.999) return pts;
+        const target = Math.max(2, Math.ceil(pts.length * frac));
+        return pts.slice(0, target);
+      }
+
+      function drawTongue(pts, width, phase, amp, bias, alpha, fill) {
+        const n = pts.length;
+        if (n < 2 || flame.energy < 0.02) return;
+
+        const left = [];
+        const right = [];
+        const time = flame.time;
+
+        for (let i = 0; i < n; i++) {
+          const t = i / (n - 1);
+          const p0 = pts[Math.max(0, i - 1)];
+          const p1 = pts[Math.min(n - 1, i + 1)];
+          let tx = p1.x - p0.x;
+          let ty = p1.y - p0.y;
+          const mag = Math.hypot(tx, ty) || 1;
+          tx /= mag;
+          ty /= mag;
+          const px = -ty;
+          const py = tx;
+
+          const taper = Math.pow(1 - t, 0.62);
+          const jag = flameNoise(t * 7.4 + time * 6.8, phase);
+          const jag2 = flameNoise(t * 13.2 + time * 4.6, phase + 2.7);
+          const w = Math.max(0.15, width * taper * (0.68 + 0.42 * jag) * (0.55 + 0.45 * flame.energy));
+          const side = bias * width * taper * 0.35 + jag2 * amp * width * taper;
+
+          left.push(pts[i].x + px * (w + side), pts[i].y + py * (w + side));
+          right.push(pts[i].x - px * (w - side * 0.55), pts[i].y - py * (w - side * 0.55));
+        }
+
+        const tip = pts[n - 1];
+        const tipPrev = pts[n - 2];
+        let ttx = tip.x - tipPrev.x;
+        let tty = tip.y - tipPrev.y;
+        const tm = Math.hypot(ttx, tty) || 1;
+        ttx /= tm;
+        tty /= tm;
+        const extra = 8 + amp * 14;
+        const tipX = tip.x + ttx * extra * flame.energy;
+        const tipY = tip.y + tty * extra * flame.energy;
+
+        ctx.beginPath();
+        ctx.moveTo(left[0], left[1]);
+        for (let i = 2; i < left.length; i += 2) ctx.lineTo(left[i], left[i + 1]);
+        ctx.lineTo(tipX, tipY);
+        for (let i = right.length - 2; i >= 0; i -= 2) ctx.lineTo(right[i], right[i + 1]);
+        ctx.closePath();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      function flameGradient(pts, stops) {
+        const a = pts[0];
+        const b = pts[pts.length - 1];
+        const g = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+        for (let i = 0; i < stops.length; i++) g.addColorStop(stops[i][0], stops[i][1]);
+        return g;
+      }
+
+      function drawFlame() {
+        const pts = flame.points;
+        if (pts.length < 2 || flame.energy < 0.02) return;
+
+        const e = flame.energy;
+        const glow = sliceFlame(pts, 1);
+        const outer = sliceFlame(pts, 0.98);
+        const tongueA = sliceFlame(pts, 0.9);
+        const tongueB = sliceFlame(pts, 0.74);
+        const mid = sliceFlame(pts, 0.62);
+        const hot = sliceFlame(pts, 0.42);
+        const core = sliceFlame(pts, 0.26);
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        drawTongue(
+          glow,
+          20,
+          0.4,
+          0.55,
+          -0.12,
+          0.22 * e,
+          flameGradient(glow, [
+            [0, "rgba(255,252,230,0.5)"],
+            [0.2, "rgba(255,170,70,0.32)"],
+            [0.5, "rgba(255,90,160,0.2)"],
+            [1, "rgba(140,70,210,0)"],
+          ])
+        );
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalCompositeOperation = "source-over";
+        drawTongue(
+          outer,
+          15,
+          0.2,
+          0.66,
+          0.18,
+          0.82 * e,
+          flameGradient(outer, [
+            [0, "rgba(255,220,130,0.65)"],
+            [0.28, "rgba(255,92,150,0.92)"],
+            [0.62, "rgba(214,64,168,0.78)"],
+            [1, "rgba(118,48,186,0)"],
+          ])
+        );
+        drawTongue(
+          tongueA,
+          12.4,
+          1.35,
+          0.78,
+          -0.3,
+          0.88 * e,
+          flameGradient(tongueA, [
+            [0, "rgba(255,236,160,0.85)"],
+            [0.22, "rgba(255,140,70,0.95)"],
+            [0.55, "rgba(255,78,148,0.88)"],
+            [1, "rgba(150,52,190,0)"],
+          ])
+        );
+        drawTongue(
+          tongueB,
+          10.2,
+          2.6,
+          0.64,
+          0.36,
+          0.86 * e,
+          flameGradient(tongueB, [
+            [0, "rgba(255,242,190,0.85)"],
+            [0.3, "rgba(255,150,55,0.94)"],
+            [0.68, "rgba(255,70,140,0.78)"],
+            [1, "rgba(160,50,185,0)"],
+          ])
+        );
+        drawTongue(
+          mid,
+          7.4,
+          0.85,
+          0.42,
+          -0.08,
+          0.95 * e,
+          flameGradient(mid, [
+            [0, "rgba(255,252,230,1)"],
+            [0.35, "rgba(255,176,48,1)"],
+            [0.75, "rgba(255,96,70,0.8)"],
+            [1, "rgba(255,70,130,0)"],
+          ])
+        );
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        drawTongue(
+          hot,
+          4.6,
+          1.9,
+          0.24,
+          0.06,
+          1 * e,
+          flameGradient(hot, [
+            [0, "rgba(255,255,245,1)"],
+            [0.45, "rgba(255,230,110,0.95)"],
+            [1, "rgba(255,160,50,0)"],
+          ])
+        );
+        drawTongue(
+          core,
+          2.5,
+          3.1,
+          0.12,
+          -0.04,
+          1 * e,
+          flameGradient(core, [
+            [0, "rgba(255,255,255,1)"],
+            [0.55, "rgba(255,248,210,0.9)"],
+            [1, "rgba(255,220,90,0)"],
+          ])
+        );
+        ctx.restore();
+      }
+
+      function explode(x, y) {
+        const n = reduceMotion ? 32 : 58;
+        for (let i = 0; i < 6; i++) {
+          bursts.push({
+            x,
+            y,
+            vx: (Math.random() - 0.5) * 30,
+            vy: (Math.random() - 0.5) * 30,
+            ax: 0,
+            ay: 0,
+            life: 0.22 + Math.random() * 0.1,
+            maxLife: 0.32,
+            size: 7 + Math.random() * 6,
+            color: i % 2 ? COLORS.white : COLORS.gold,
+            glow: true,
+            spark: false,
+          });
+        }
+        for (let i = 0; i < n && bursts.length < MAX_BURST + 40; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const mag = 180 + Math.random() * 420;
+          const roll = Math.random();
+          const kind = roll < 0.18 ? "core" : roll < 0.5 ? "hot" : roll < 0.82 ? "mid" : "outer";
+          const dist0 = 6 + Math.random() * 16;
+          bursts.push({
+            x: x + Math.cos(a) * dist0,
+            y: y + Math.sin(a) * dist0,
+            vx: Math.cos(a) * mag * (0.45 + Math.random() * 0.7),
+            vy: Math.sin(a) * mag * (0.45 + Math.random() * 0.7),
+            ax: (Math.random() - 0.5) * 40,
+            ay: (Math.random() - 0.5) * 40,
+            life: 0.42 + Math.random() * 0.18,
+            maxLife: 0.6,
+            size: roll > 0.88 ? 2.8 + Math.random() * 2.2 : roll < 0.3 ? 0.85 + Math.random() * 0.9 : 1.5 + Math.random() * 1.7,
+            color: pickColor(kind),
+            glow: true,
+            spark: roll > 0.84,
+          });
+        }
+        if (bursts.length > MAX_BURST + 48) bursts.splice(0, bursts.length - MAX_BURST);
+      }
+
+      function stepParticles(list, dt, stopped) {
+        for (let i = list.length - 1; i >= 0; i--) {
+          const p = list[i];
+          const drag = Math.exp(-(stopped ? 5.2 : 2.4) * dt);
+          p.vx += (p.ax || 0) * dt;
+          p.vy += (p.ay || 0) * dt;
+          p.vx *= drag;
+          p.vy *= drag;
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          if (stopped && p.life > 0.26) p.life = 0.26;
+          p.life -= dt;
+          if (p.life <= 0) list.splice(i, 1);
+        }
+      }
+
+      function drawParticles(list) {
+        for (let i = 0; i < list.length; i++) {
+          const p = list[i];
+          const t = p.life / p.maxLife;
+          const fade = Math.sqrt(t);
+          const [r, g, b] = p.color;
+          const size = p.size * (0.4 + 0.6 * t);
+
+          if (p.glow) {
+            const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 4.8);
+            grd.addColorStop(0, `rgba(${r},${g},${b},${0.42 * fade})`);
+            grd.addColorStop(0.4, `rgba(${r},${g},${b},${0.14 * fade})`);
+            grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size * 4.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = `rgba(${r},${g},${b},${(p.spark ? 1 : 0.88) * fade})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (p.spark && t > 0.35) {
+            ctx.strokeStyle = `rgba(255,252,245,${0.55 * fade})`;
+            ctx.lineWidth = 0.7;
+            const arm = size * 2.4;
+            ctx.beginPath();
+            ctx.moveTo(p.x - arm, p.y);
+            ctx.lineTo(p.x + arm, p.y);
+            ctx.moveTo(p.x, p.y - arm);
+            ctx.lineTo(p.x, p.y + arm);
+            ctx.stroke();
+          }
+        }
+      }
+
+      function drawStars(now) {
+        for (let i = 0; i < stars.length; i++) {
+          const s = stars[i];
+          const tw = 0.72 + Math.sin(now * 0.0016 * s.sp + s.tw) * 0.28;
+          ctx.fillStyle = `rgba(235, 240, 255, ${s.a * tw})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function setCursorHidden(hidden) {
+        document.documentElement.style.cursor = hidden ? "none" : "auto";
+        document.body.style.cursor = hidden ? "none" : "auto";
+      }
+
+      function onPointerMove(e) {
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        pointer.inside = true;
+        lastMoveAt = performance.now();
+        if (!rocket.visible) {
+          rocket.x = pointer.x;
+          rocket.y = pointer.y;
+          rocket.visible = true;
+          rocketEl.classList.add("is-ready");
+          setCursorHidden(true);
+        }
+      }
+
+      function onPointerLeave() {
+        pointer.inside = false;
+        rocket.visible = false;
+        rocketEl.classList.remove("is-ready");
+        rocketEl.style.transform = "translate3d(-120px,-120px,0)";
+        setCursorHidden(false);
+      }
+
+      function onPointerDown(e) {
+        if (e.pointerType === "touch") return;
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        explode(pointer.x, pointer.y);
+        const now = performance.now();
+        hiddenUntil = now + 200;
+        appearFrom = now + 200;
+        appearUntil = now + 360;
+      }
+
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("pointerdown", onPointerDown, { passive: true });
+      document.addEventListener("pointerleave", onPointerLeave);
+      window.addEventListener("blur", onPointerLeave);
+      window.addEventListener("resize", resize);
+
+      function tick(now) {
+        const dt = clamp((now - lastTime) / 1000, 0.001, 0.033);
+        lastTime = now;
+
+        const prevX = rocket.x;
+        const prevY = rocket.y;
+        const follow = reduceMotion ? 1 : expSmooth(78, dt);
+        rocket.x = lerp(rocket.x, pointer.x, follow);
+        rocket.y = lerp(rocket.y, pointer.y, follow);
+
+        const movedX = rocket.x - prevX;
+        const movedY = rocket.y - prevY;
+        const pxPerSec = Math.hypot(movedX, movedY) / dt;
+
+        if (pxPerSec > 28) {
+          lastAngle = Math.atan2(movedY, movedX);
+        }
+        rocket.angle = lerpAngle(rocket.angle, lastAngle, expSmooth(16, dt));
+
+        const hidden = now < hiddenUntil;
+        const stopped = pxPerSec < 16 && now - lastMoveAt > 50;
+
+        updateFlame(dt, hidden, stopped, reduceMotion ? pxPerSec * 0.45 : pxPerSec);
+        stepParticles(bursts, dt, false);
+
+        let scale = 1;
+        let opacity = rocket.visible ? 1 : 0;
+        if (hidden) {
+          scale = 0.94;
+          opacity = 0;
+        } else if (now < appearUntil) {
+          const t = clamp((now - appearFrom) / Math.max(appearUntil - appearFrom, 1), 0, 1);
+          const eased = 1 - Math.pow(1 - t, 3);
+          scale = lerp(0.94, 1, eased);
+          opacity = eased;
+        }
+
+        if (rocket.visible) {
+          const deg = (rocket.angle * 180) / Math.PI + 90;
+          rocketEl.style.opacity = String(opacity);
+          rocketEl.style.transform = `translate3d(${rocket.x - HALF}px, ${rocket.y - HALF}px, 0) rotate(${deg}deg) scale(${scale})`;
+        }
+
+        ctx.clearRect(0, 0, width, height);
+        drawStars(now);
+        if (!hidden) drawFlame();
+        ctx.globalCompositeOperation = "lighter";
+        drawParticles(bursts);
+        ctx.globalCompositeOperation = "source-over";
+
+        requestAnimationFrame(tick);
+      }
+
+      resize();
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
