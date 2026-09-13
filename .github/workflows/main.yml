@@ -45,11 +45,28 @@ jobs:
       - name: Copy Day 01 into root dist
         run: cp -R day-01-magnetic-button/dist/. dist/day-01-magnetic-button/
 
+      - name: Create root dist/index.html
+        run: |
+          cat > dist/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta http-equiv="refresh" content="0; url=./day-01-magnetic-button/" />
+            <title>Day 01 — Magnetic Button</title>
+            <script>location.replace("./day-01-magnetic-button/");</script>
+          </head>
+          <body>
+            <p><a href="./day-01-magnetic-button/">Continue to Day 01</a></p>
+          </body>
+          </html>
+          EOF
+
       - name: Copy Day 02 into root dist
         run: cp day-02-cursor-playground/index.html dist/day-02-cursor-playground/index.html
 
       - name: Print final dist structure
-        run: find dist -maxdepth 3 -type f | sort
+        run: find dist -maxdepth 4 -type f | sort
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
