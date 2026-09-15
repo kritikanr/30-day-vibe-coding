@@ -66,7 +66,7 @@ jobs:
         run: cp day-02-cursor-playground/index.html dist/day-02-cursor-playground/index.html
 
       - name: Copy Day 03 into root dist
-        run: mkdir -p "dist/day-03-Liquid Toggle" && cp "day-03-Liquid Toggle/index.html" "dist/day-03-Liquid-Toggle/index.html"
+        run: mkdir -p dist/day-03-Liquid-Toggle && cp "day-03-Liquid Toggle/index.html" dist/day-03-Liquid-Toggle/index.html
 
       - name: Print final dist structure
         run: find dist -maxdepth 4 -type f | sort
