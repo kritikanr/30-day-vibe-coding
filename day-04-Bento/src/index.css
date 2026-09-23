@@ -1,0 +1,230 @@
+/* Modern Reset & Design System Tokens */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Font Families */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  
+  /* Primary Accent & Semantic Colors */
+  --color-orange: #FF5E1E;
+  --color-orange-glow: rgba(255, 94, 30, 0.35);
+  --color-neon-green: #9AE600;
+  --color-neon-green-glow: rgba(154, 230, 0, 0.4);
+  --color-cyan: #06B6D4;
+  --color-indigo: #6366F1;
+  --color-coffee: #C07D4C;
+  --color-coffee-bg: #F4E8DB;
+  
+  /* Radii */
+  --radius-card: 26px;
+  --radius-pill: 9999px;
+  --radius-inner: 18px;
+  --radius-sm: 10px;
+}
+
+/* Light Mode (matches reference image exactly) */
+:root, [data-theme="light"] {
+  --bg-page: #E3E2E0;
+  --bg-grid-pattern: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.03) 1px, transparent 1px);
+  --text-primary: #121316;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  
+  /* Card Themes */
+  --card-light-bg: #FFFFFF;
+  --card-light-border: rgba(255, 255, 255, 0.85);
+  --card-light-shadow: 
+    0 16px 36px -12px rgba(0, 0, 0, 0.08),
+    0 4px 12px -2px rgba(0, 0, 0, 0.04),
+    0 0 1px rgba(0, 0, 0, 0.08);
+  --card-light-inner-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.95);
+
+  --card-dark-bg: #16171B;
+  --card-dark-border: rgba(255, 255, 255, 0.07);
+  --card-dark-shadow: 
+    0 20px 40px -14px rgba(0, 0, 0, 0.32),
+    0 4px 14px -3px rgba(0, 0, 0, 0.25),
+    0 0 1px rgba(255, 255, 255, 0.1);
+  --card-dark-inner-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
+
+  --card-dark-text: #FFFFFF;
+  --card-dark-subtext: #8E929C;
+
+  --card-coffee-bg: #EFE4D6;
+  --card-coffee-border: rgba(255, 255, 255, 0.6);
+  --card-coffee-shadow: 
+    0 16px 36px -12px rgba(192, 125, 76, 0.15),
+    0 4px 12px -2px rgba(0, 0, 0, 0.04);
+
+  --badge-bg: rgba(0, 0, 0, 0.05);
+  --badge-text: #374151;
+  --pill-bg: #1B1D22;
+  --pill-text: #F3F4F6;
+  --header-bg: rgba(227, 226, 224, 0.85);
+  --header-border: rgba(0, 0, 0, 0.06);
+}
+
+/* Dark Mode (cyber studio luxury) */
+[data-theme="dark"] {
+  --bg-page: #0C0D10;
+  --bg-grid-pattern: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04) 1px, transparent 1px);
+  --text-primary: #F9FAFB;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  
+  --card-light-bg: #1E2026;
+  --card-light-border: rgba(255, 255, 255, 0.08);
+  --card-light-shadow: 
+    0 20px 40px -12px rgba(0, 0, 0, 0.6),
+    0 0 1px rgba(255, 255, 255, 0.08);
+  --card-light-inner-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+
+  --card-dark-bg: #121317;
+  --card-dark-border: rgba(255, 255, 255, 0.08);
+  --card-dark-shadow: 
+    0 24px 48px -14px rgba(0, 0, 0, 0.7),
+    0 0 1px rgba(255, 255, 255, 0.12);
+  --card-dark-inner-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+
+  --card-dark-text: #FFFFFF;
+  --card-dark-subtext: #8E929C;
+
+  --card-coffee-bg: #2C241E;
+  --card-coffee-border: rgba(255, 255, 255, 0.06);
+  --card-coffee-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+
+  --badge-bg: rgba(255, 255, 255, 0.08);
+  --badge-text: #E2E8F0;
+  --pill-bg: #18191E;
+  --pill-text: #F3F4F6;
+  --header-bg: rgba(12, 13, 16, 0.85);
+  --header-border: rgba(255, 255, 255, 0.06);
+}
+
+html, body {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  background-image: var(--bg-grid-pattern);
+  background-size: 24px 24px;
+  background-attachment: fixed;
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.5);
+}
+
+/* Base interactive button & card transition */
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Common Widget Card Elevation & Interactive Hover */
+.bento-card {
+  position: relative;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+  will-change: transform;
+}
+
+.bento-card:hover {
+  transform: translateY(-3px) scale(1.008);
+}
+
+/* Card variants */
+.bento-card-light {
+  background: var(--card-light-bg);
+  box-shadow: var(--card-light-shadow), var(--card-light-inner-shadow);
+  border: 1px solid var(--card-light-border);
+  color: var(--text-primary);
+}
+
+.bento-card-light:hover {
+  box-shadow: 
+    0 24px 48px -12px rgba(0, 0, 0, 0.12),
+    0 8px 18px -4px rgba(0, 0, 0, 0.05),
+    var(--card-light-inner-shadow);
+}
+
+.bento-card-dark {
+  background: var(--card-dark-bg);
+  box-shadow: var(--card-dark-shadow), var(--card-dark-inner-shadow);
+  border: 1px solid var(--card-dark-border);
+  color: var(--card-dark-text);
+}
+
+.bento-card-dark:hover {
+  box-shadow: 
+    0 28px 54px -14px rgba(0, 0, 0, 0.5),
+    0 0 2px rgba(255, 255, 255, 0.18),
+    var(--card-dark-inner-shadow);
+}
+
+.bento-card-coffee {
+  background: var(--card-coffee-bg);
+  box-shadow: var(--card-coffee-shadow);
+  border: 1px solid var(--card-coffee-border);
+  color: #382A20;
+}
+
+/* Horizontal pill containers */
+.bento-pill-widget {
+  background: var(--pill-bg);
+  border-radius: var(--radius-pill);
+  box-shadow: 
+    0 16px 32px -8px rgba(0, 0, 0, 0.28),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--pill-text);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease;
+}
+
+.bento-pill-widget:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 
+    0 20px 38px -10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.16);
+}
