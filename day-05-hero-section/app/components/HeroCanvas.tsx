@@ -10,7 +10,7 @@ const TOTAL_FRAMES = 260;
 
 function getFrameSrc(index: number): string {
   const pad = String(index).padStart(3, "0");
-  return `/frames/ezgif-frame-${pad}.jpg`;
+  return `frames/ezgif-frame-${pad}.jpg`;
 }
 
 export default function HeroCanvas({ containerRef }: HeroCanvasProps) {

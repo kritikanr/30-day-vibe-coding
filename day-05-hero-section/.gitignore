@@ -1,0 +1,5 @@
+
+# Generated files
+.next/
+out/
+node_modules/
