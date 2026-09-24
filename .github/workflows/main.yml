@@ -79,6 +79,16 @@ jobs:
       - name: Copy Day 04 into root dist
         run: mkdir -p dist/day-04-Bento && cp -R day-04-Bento/dist/. dist/day-04-Bento/
 
+      - name: Install Day 05 dependencies
+        working-directory: day-05-hero-section
+        run: npm ci
+
+      - name: Build Day 05
+        working-directory: day-05-hero-section
+        run: npm run build
+
+      - name: Copy Day 05 into root dist
+        run: mkdir -p dist/day-05-hero-section && cp -R day-05-hero-section/out/. dist/day-05-hero-section/
 
       - name: Print final dist structure
         run: find dist -maxdepth 4 -type f | sort
