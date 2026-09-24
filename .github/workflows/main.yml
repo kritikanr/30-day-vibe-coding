@@ -32,7 +32,7 @@ jobs:
       - name: Prepare root dist
         run: |
           rm -rf dist
-          mkdir -p dist/day-01-magnetic-button dist/day-02-cursor-playground
+          mkdir -p dist/day-01-magnetic-button dist/day-02-cursor-playground dist/day-04-Bento
 
       - name: Install dependencies
         working-directory: day-01-magnetic-button
@@ -44,6 +44,17 @@ jobs:
 
       - name: Copy Day 01 into root dist
         run: cp -R day-01-magnetic-button/dist/. dist/day-01-magnetic-button/
+      - name: Install Day 04 dependencies
+        working-directory: day-04-Bento
+        run: npm ci
+
+      - name: Build Day 04
+        working-directory: day-04-Bento
+        run: npm run build -- --base=/30-day-vibe-coding/day-04-Bento/
+
+      - name: Copy Day 04 into root dist
+        run: cp -R day-04-Bento/dist/. dist/day-04-Bento/
+
 
       - name: Create root dist/index.html
         run: |
