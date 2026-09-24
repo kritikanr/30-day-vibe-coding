@@ -67,6 +67,18 @@ jobs:
 
       - name: Copy Day 03 into root dist
         run: mkdir -p dist/day-03-Liquid-Toggle && cp "day-03-Liquid Toggle/index.html" dist/day-03-Liquid-Toggle/index.html
+     
+      - name: Build Day 04
+        working-directory: day-04-Bento
+        run: npm ci
+
+      - name: Build Day 04 for GitHub Pages
+        working-directory: day-04-Bento
+        run: npm run build -- --base=/30-day-vibe-coding/day-04-Bento/
+
+      - name: Copy Day 04 into root dist
+        run: mkdir -p dist/day-04-Bento && cp -R day-04-Bento/dist/. dist/day-04-Bento/
+
 
       - name: Print final dist structure
         run: find dist -maxdepth 4 -type f | sort
