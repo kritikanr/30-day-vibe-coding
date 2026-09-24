@@ -15,3 +15,6 @@ A collection of small interactive experiments built over 30 days.
 
 ### Day 04 — Bento
 [Open Day 04 →](https://kritikanr.github.io/30-day-vibe-coding/day-04-Bento/)
+
+### Day 05 — Hero Section
+[Open Day 05 →](https://kritikanr.github.io/30-day-vibe-coding/day-05-hero-section/)
