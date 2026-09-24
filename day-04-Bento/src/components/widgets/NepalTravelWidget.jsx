@@ -38,12 +38,12 @@ export default function NepalTravelWidget({ size = 'hero' }) {
                 <h3 className="nepal-title">Nepal</h3>
               </div>
               <div className="nepal-thumb">
-                <img src="/images/nepal.jpg" alt="Nepal" className="nepal-thumb-img" loading="lazy" />
+                <img src={`${import.meta.env.BASE_URL}images/nepal.jpg`} alt="Nepal" className="nepal-thumb-img" loading="lazy" />
               </div>
             </div>
             <p className="nepal-desc-short">Himalayan peaks & alpine heritage.</p>
             <div className="nepal-footer">
-              <button className={`nepal-book-btn ${isBooked ? 'booked' : ''}`} onClick={toggleBook}>
+        <button className={isBooked ? "nepal-book-btn booked" : "nepal-book-btn"} onClick={toggleBook}>
                 {isBooked ? <Check size={12} /> : <span>Booking •</span>}
               </button>
             </div>
@@ -53,7 +53,7 @@ export default function NepalTravelWidget({ size = 'hero' }) {
         {size === 'wide' && (
           <div className="nepal-wide-layout">
             <div className="nepal-wide-thumb">
-              <img src="/images/nepal.jpg" alt="Nepal" className="nepal-wide-img" loading="lazy" />
+              <img src={`${import.meta.env.BASE_URL}images/nepal.jpg`} alt="Nepal" className="nepal-wide-img" loading="lazy" />
               <span className="nepal-altitude-badge">5,364m</span>
             </div>
             <div className="nepal-wide-content">
@@ -74,7 +74,7 @@ export default function NepalTravelWidget({ size = 'hero' }) {
         {size === 'tall' && (
           <div className="nepal-tall-layout">
             <div className="nepal-tall-hero">
-              <img src="/images/nepal.jpg" alt="Nepal" className="nepal-tall-img" loading="lazy" />
+              <img src={`${import.meta.env.BASE_URL}images/nepal.jpg`} alt="Nepal" className="nepal-tall-img" loading="lazy" />
               <div className="nepal-tall-badge"><Mountain size={12} /> Everest Range</div>
             </div>
             <div className="nepal-tall-body">
@@ -91,7 +91,7 @@ export default function NepalTravelWidget({ size = 'hero' }) {
         {size === 'hero' && (
           <div className="nepal-hero-layout">
             <div className="nepal-hero-bg">
-              <img src="/images/nepal.jpg" alt="Himalayas" className="nepal-hero-img" loading="lazy" />
+              <img src={`${import.meta.env.BASE_URL}images/nepal.jpg`} alt="Himalayas" className="nepal-hero-img" loading="lazy" />
               <div className="nepal-hero-overlay"></div>
             </div>
             <div className="nepal-hero-content">
@@ -137,7 +137,7 @@ export default function NepalTravelWidget({ size = 'hero' }) {
               <X size={18} />
             </button>
             <div className="nepal-modal-hero">
-              <img src="/images/nepal.jpg" alt="Everest Region" />
+              <img src={`${import.meta.env.BASE_URL}images/nepal.jpg`} alt="Everest Region" />
               <div className="nepal-modal-badge">
                 <MapPin size={14} /> Annapurna Circuit
               </div>

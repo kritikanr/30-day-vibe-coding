@@ -34,7 +34,7 @@ export default function FashionCardWidget({ size = 'wide' }) {
             <span className="fashion-orange-dot"></span>
           </div>
           <div className="fashion-compact-img-wrap">
-            <img src="/images/fashion.jpg" alt="Fashion Models" className="fashion-compact-img" loading="lazy" />
+            <img src={`${import.meta.env.BASE_URL}images/fashion.jpg`} alt="Fashion Models" className="fashion-compact-img" loading="lazy" />
             <button className="fashion-arrow-circle-btn mini" onClick={handleNextLook}>
               <ArrowRight size={11} strokeWidth={2.5} />
             </button>
@@ -59,14 +59,14 @@ export default function FashionCardWidget({ size = 'wide' }) {
             </div>
           </div>
           <div className="fashion-wide-img-wrap">
-            <img src="/images/fashion.jpg" alt="Fashion Runway Models" className="fashion-photo" loading="lazy" />
+            <img src={`${import.meta.env.BASE_URL}images/fashion.jpg`} alt="Fashion Runway Models" className="fashion-photo" loading="lazy" />
           </div>
         </div>
       )}
 
       {size === 'tall' && (
         <div className="fashion-tall-layout">
-          <img src="/images/fashion.jpg" alt="Runway Models" className="fashion-tall-img" loading="lazy" />
+          <img src={`${import.meta.env.BASE_URL}images/fashion.jpg`} alt="Runway Models" className="fashion-tall-img" loading="lazy" />
           <div className="fashion-tall-overlay">
             <div className="fashion-tall-header">
               <span className="fashion-look-badge">{current.season}</span>
@@ -85,7 +85,7 @@ export default function FashionCardWidget({ size = 'wide' }) {
       {size === 'hero' && (
         <div className="fashion-hero-layout">
           <div className="fashion-hero-img-col">
-            <img src="/images/fashion.jpg" alt="Fashion Editorial" className="fashion-hero-img" loading="lazy" />
+            <img src={`${import.meta.env.BASE_URL}images/fashion.jpg`} alt="Fashion Editorial" className="fashion-hero-img" loading="lazy" />
             <div className="fashion-hero-tag-chip">
               <Sparkles size={12} /> {current.tag}
             </div>
